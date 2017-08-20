@@ -54,9 +54,7 @@ function moveForward(currentState, worldSizeCoordinates) {
 
   // Don't continue if next state is dangerous
   if (dangerousNextState(futureState)) {
-    return {
-      ...currentState
-    }
+    return currentState
   }
 
   // Add a new value to dangerous coordinates if now lost
@@ -66,6 +64,7 @@ function moveForward(currentState, worldSizeCoordinates) {
       y,
       orientation
     });
+
 
     return {
       ...currentState,
