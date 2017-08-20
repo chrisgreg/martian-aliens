@@ -1,9 +1,16 @@
-function getWorldSize(entry) {
+function getCoordinates(entry, includeOrientation) {
   const values = entry.split(' ');
-  return {
-    x: values[0],
-    y: values[1]
+
+  const coordinates = {
+    x: Number(values[0]),
+    y: Number(values[1])
   }
+
+  if (includeOrientation) {
+    coordinates.orientation = values[2];
+  }
+
+  return coordinates
 }
 
 function chunkInstructions(instructions) {
@@ -14,7 +21,8 @@ function chunkInstructions(instructions) {
   return results;
 }
 
+
 module.exports = {
-  getWorldSize,
+  getCoordinates,
   chunkInstructions
 }
