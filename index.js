@@ -1,5 +1,5 @@
 const fs = require("fs")
-const { getCoordinates, chunkInstructions } = require('./utils');
+const { getCoordinates, chunkInstructions, reportRobotState } = require('./utils');
 
 // Read input file
 const input = fs.readFileSync('./input.txt', 'utf-8');
@@ -15,6 +15,8 @@ const filteredInstructions = instructions.filter(l => l !== '');
 const worldSizeCoordinates = getCoordinates(worldSizeEntry);
 const groupedInstructions = chunkInstructions(filteredInstructions);
 
+const lostCoordinates = [];
+
 // Execute instructions
 groupedInstructions.forEach(instruction => {
   const robotPosition = instruction[0];
@@ -24,74 +26,48 @@ groupedInstructions.forEach(instruction => {
   const eachInstruction = robotInstructions.split('');
 
   const finalState = eachInstruction.reduce((currentState, nextInstruction) => {
+    if (currentState.lost === true) {
+      return currentState
+    }
     return executeInstruction(currentState, nextInstruction)
   }, initialState)
 
-  console.log(finalState);
-
+  reportRobotState(finalState);
 })
 
 
-
-function executeInstruction(currentState, nextInstruction) {
-
+function moveForward(currentState) {
   let { x, y, orientation } = currentState;
+  let lost = false;
+  let newY = y
+  let newX = x;
 
-  switch (nextInstruction) {
-    case 'F':
-      if (orientation === 'N') {
-        y = y+1;
-        break;
-      }
-      if (orientation === 'S') {
-        y = y-1;
-        break;
-      }
-      if (orientation === 'E') {
-        x = x+1;
-        break;
-      }
-      if (orientation === 'W') {
-        x = x-1;
-        break;
+  switch (orientation) {
+    case 'N':
+      newY = y + 1;
+      if (newY > worldSizeCoordinates.y) {
+        lost = true;
       }
       break;
 
-    case 'L':
-      if (orientation === 'N') {
-        orientation = 'W'
-        break;
-      }
-      if (orientation === 'W') {
-        orientation = 'S'
-        break;
-      }
-      if (orientation === 'S') {
-        orientation = 'E'
-        break;
-      }
-      if (orientation === 'E') {
-        orientation = 'N'
-        break;
+    case 'S':
+      newY = y - 1;
+      if (newY < 0) {
+        lost = true;
       }
       break;
 
-    case 'R':
-      if (orientation === 'N') {
-        orientation = 'E'
-        break;
+    case 'E':
+      newX = x + 1;
+      if (newX > worldSizeCoordinates.x) {
+        lost = true;
       }
-      if (orientation === 'E') {
-        orientation = 'S'
-        break;
-      }
-      if (orientation === 'S') {
-        orientation = 'W'
-        break;
-      }
-      if (orientation === 'W') {
-        orientation = 'N'
-        break;
+      break;
+
+    case 'W':
+      newX = x - 1;
+      if (newX < 0) {
+        lost = true;
       }
       break;
 
@@ -99,10 +75,127 @@ function executeInstruction(currentState, nextInstruction) {
       return currentState;
   }
 
-  const newState = {
+  const nextState = {
+    x: newX,
+    y: newY,
+    orientation
+  }
+
+  // if next state is in lost coordinates
+  const dangerousNextState = (nextState) => {
+    return lostCoordinates.find(lost => {
+      return lost.orientation === orientation && lost.x === x && lost.y === y
+    })
+  }
+
+  if (dangerousNextState(nextState)) {
+    return {
+      ...currentState
+    }
+  }
+
+  if (lost === true) {
+    lostCoordinates.push({
+      x,
+      y,
+      orientation
+    });
+
+    return {
+      ...currentState,
+      lost: true
+    }
+  }
+
+  return {
+    ...nextState,
+    lost
+  }
+}
+
+function turnLeft(currentState) {
+  let { x, y, orientation } = currentState;
+
+  switch (orientation) {
+    case 'N':
+      orientation = 'W'
+      break;
+
+    case 'S':
+      orientation = 'E'
+      break;
+
+    case 'E':
+      orientation = 'N'
+      break;
+
+    case 'W':
+      orientation = 'S'
+      break;
+
+    default:
+      return currentState;
+  }
+
+  return {
     x,
     y,
     orientation
+  }
+}
+
+
+function turnRight(currentState) {
+  let { x, y, orientation } = currentState;
+
+  switch (orientation) {
+    case 'N':
+      orientation = 'E'
+      break;
+
+    case 'S':
+      orientation = 'W'
+      break;
+
+    case 'E':
+      orientation = 'S'
+      break;
+
+    case 'W':
+      orientation = 'N'
+      break;
+
+    default:
+      return currentState;
+  }
+
+  return {
+    x,
+    y,
+    orientation
+  }
+}
+
+
+function executeInstruction(currentState, nextInstruction) {
+
+  let newState = {};
+
+  switch (nextInstruction) {
+    case 'F':
+      newState = moveForward(currentState);
+      break;
+
+    case 'L':
+      newState = turnLeft(currentState);
+      break;
+
+    case 'R':
+      newState = turnRight(currentState);
+      break;
+
+    default:
+      return currentState;
   }
 
   return newState;

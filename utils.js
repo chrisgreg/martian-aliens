@@ -21,8 +21,14 @@ function chunkInstructions(instructions) {
   return results;
 }
 
+function reportRobotState(state) {
+  const { x, y, orientation, lost } = state;
+  const report = `${x} ${y} ${orientation} ${lost ? 'LOST' : ''}`;
+  console.log(report);
+}
 
 module.exports = {
   getCoordinates,
-  chunkInstructions
+  chunkInstructions,
+  reportRobotState
 }
