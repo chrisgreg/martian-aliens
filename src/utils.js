@@ -24,7 +24,7 @@ function chunkInstructions(instructions) {
 function reportRobotState(state) {
   const { x, y, orientation, lost } = state;
   const report = `${x} ${y} ${orientation} ${lost ? 'LOST' : ''}`;
-  console.log(report);
+  return report.trim();
 }
 
 module.exports = {

@@ -1,9 +1,11 @@
 const fs = require("fs")
+const path = require("path")
 const { getCoordinates, chunkInstructions, reportRobotState } = require('./utils');
 const { turnLeft, turnRight, moveForward } = require('./instructions');
 
 // Read input file
-const input = fs.readFileSync('./input.txt', 'utf-8');
+const filePath = path.join(__dirname + '/input.txt');
+const input = fs.readFileSync(filePath, 'utf-8');
 
 // Parse to array
 const instructions = input.split('\n')
@@ -34,7 +36,7 @@ groupedInstructions.forEach(instruction => {
   }, initialState)
 
   // Final report on robot status
-  reportRobotState(finalState);
+  console.log(reportRobotState(finalState));
 })
 
 
